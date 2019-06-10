@@ -1,6 +1,6 @@
 import os
 import numpy as np
-from ctypes import cdll, c_double, c_uint, c_ubyte, POINTER, Structure
+from ctypes import cdll, c_double, c_uint, c_ubyte, POINTER, Structure, c_double
 
 parentdir = os.path.dirname(os.path.abspath(__file__))
 if os.name == 'nt':
@@ -18,7 +18,13 @@ class RgbaStruct(Structure):
                 ("b", c_ubyte),
                 ("a", c_ubyte)]
 
-def plot3d_scatter(points: np.ndarray, color: (int, int, int, int)):
+# Tait–Bryan angle vector in radians (x, y, z)
+class TbaStruct(Structure):
+    _fields_ = [("x", c_double),
+                ("y", c_double),
+                ("z", c_double)]
+
+def plot3d_scatter(points: np.ndarray, color: (int, int, int, int), axes_rotation=(0.0, 0.0, 0.0)):
     """Generate a scatterplot image. Note this function
     operates directly on the memory storing `points`, so 
     `points` should be copied if it is to be used after
@@ -28,4 +34,5 @@ def plot3d_scatter(points: np.ndarray, color: (int, int, int, int)):
     c_double_ptr = POINTER(c_double)
     beffore_ptr = points.ctypes.data_as(c_double_ptr)
     color_struct = RgbaStruct(*color)
-    _plot3d_scatter_internal(beffore_ptr, pointcount, color_struct)
+    rotation_struct = TbaStruct(*axes_rotation)
+    _plot3d_scatter_internal(beffore_ptr, pointcount, color_struct, rotation_struct)
